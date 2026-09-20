@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/c/wamp64/bin/php/php8.2.29/php.exe artisan *)",
+      "Bash(/c/wamp64/bin/php/php8.2.29/php.exe -l database/seeders/TaskDemoDataSeeder.php)",
+      "Bash(/c/wamp64/bin/php/php8.2.29/php.exe -l database/seeders/DatabaseSeeder.php)",
+      "Bash(/c/wamp64/bin/php/php8.2.29/php.exe -l /c/wamp64/www/wiclif-taches/wiclif-taches/api/app/Enums/ProjectRole.php)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
+    ]
+  }
+}
