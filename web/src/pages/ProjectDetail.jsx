@@ -24,7 +24,7 @@ const TABS = [
 export default function ProjectDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { isAdmin, isChefOf, isProjectManagerOf } = useAuth()
+  const { isAdmin, isDirecteur, isChefOf, isProjectManagerOf } = useAuth()
   const toast = useToast()
 
   const [project, setProject] = useState(null)
@@ -41,7 +41,7 @@ export default function ProjectDetail() {
   if (project === false) return <p className="muted">Projet introuvable.</p>
   if (!project) return <Spinner />
 
-  const canManage = isAdmin || isChefOf(project.department_id) || isProjectManagerOf(project.id)
+  const canManage = isAdmin || isDirecteur || isChefOf(project.department_id) || isProjectManagerOf(project.id)
 
   const remove = async () => {
     if (!confirm(`Supprimer le projet « ${project.title} » ? Ses activités seront aussi supprimées.`)) return
@@ -67,7 +67,7 @@ export default function ProjectDetail() {
         actions={
           <>
             <StatusBadge status={project.status} label={project.status_label} />
-            {isAdmin || isChefOf(project.department_id) ? (
+            {isAdmin || isDirecteur || isChefOf(project.department_id) ? (
               <button className="btn btn-ghost btn-sm" onClick={remove} style={{ marginLeft: 8 }}>Supprimer</button>
             ) : null}
           </>

@@ -55,15 +55,15 @@ export default function ProfileModal({ onClose }) {
       footer={
         mode === 'view' ? (
           <>
-            <button className="btn btn-ghost" onClick={onClose}>Fermer</button>
-            <button className="btn btn-primary" onClick={() => setMode('edit')}>
+            <button type="button" className="btn btn-ghost" onClick={onClose}>Fermer</button>
+            <button type="button" className="btn btn-primary" onClick={() => setMode('edit')}>
               <IconEdit width={15} height={15} /> Modifier
             </button>
           </>
         ) : (
           <>
-            <button className="btn btn-ghost" onClick={() => setMode('view')}>Annuler</button>
-            <button className="btn btn-primary" form="profile-form" disabled={busy}>
+            <button type="button" className="btn btn-ghost" onClick={() => setMode('view')}>Annuler</button>
+            <button type="submit" className="btn btn-primary" form="profile-form" disabled={busy}>
               {busy ? 'Enregistrement…' : 'Enregistrer'}
             </button>
           </>

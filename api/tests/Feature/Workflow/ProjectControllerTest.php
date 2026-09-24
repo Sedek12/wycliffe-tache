@@ -37,6 +37,35 @@ class ProjectControllerTest extends TestCase
         $this->assertTrue($project->isManagedBy($chef->id));
     }
 
+    public function test_directeur_can_create_a_project_in_any_department_via_the_real_endpoint(): void
+    {
+        // Régression : la policy autorisait déjà le directeur (before() -> isSupervisor()),
+        // mais le contrôleur avait son propre contrôle manuel isChefOf()||isAdmin() qui
+        // le bloquait quand même. Ce test passe par le vrai endpoint HTTP, pas juste Gate::allows().
+        $department = $this->makeDepartment();
+        $chef = $this->makeChef($department);
+        $directeur = $this->makeDirecteur();
+
+        $response = $this->actingAs($directeur)->postJson('/api/projects', [
+            'department_id' => $department->id,
+            'title' => 'Projet supervisé par la direction',
+            'starts_at' => now()->toDateString(),
+            'due_at' => now()->addMonth()->toDateString(),
+        ]);
+
+        $response->assertCreated();
+
+        // Le directeur n'a pas besoin d'apparaître comme membre du projet : il a déjà
+        // un accès total via son rôle système.
+        $project = \App\Models\Project::first();
+        $this->assertFalse($project->members()->where('users.id', $directeur->id)->exists());
+
+        // Il peut aussi le supprimer, via le vrai endpoint.
+        $this->actingAs($directeur)
+            ->deleteJson("/api/projects/{$project->id}")
+            ->assertOk();
+    }
+
     public function test_an_employee_cannot_create_a_project(): void
     {
         $department = $this->makeDepartment();

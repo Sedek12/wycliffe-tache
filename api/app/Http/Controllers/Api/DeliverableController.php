@@ -134,13 +134,13 @@ class DeliverableController extends Controller
         $this->authorize('submitDeliverable', $task);
         abort_unless($deliverable->task_id === $task->id, 404);
 
-        // L'auteur du dépôt, un chef du département, le responsable de la tâche ou un admin.
+        // L'auteur du dépôt, un chef du département, le responsable de la tâche, ou un admin/directeur.
         $user = request()->user();
         abort_unless(
             $deliverable->uploaded_by === $user->id
                 || $user->isChefOf($task->department_id)
                 || $task->isSupervisedBy($user->id)
-                || $user->isAdmin(),
+                || $user->isSupervisor(),
             403
         );
 

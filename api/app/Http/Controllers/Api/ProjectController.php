@@ -49,7 +49,10 @@ class ProjectController extends Controller
 
         $user = $request->user();
 
-        if (! $user->isChefOf($data['department_id']) && ! $user->isAdmin()) {
+        // L'admin et le directeur peuvent créer un projet dans n'importe quel département ;
+        // les autres rôles (chef, ou responsable managérial via un autre projet) doivent
+        // être chef du département ciblé.
+        if (! $user->isChefOf($data['department_id']) && ! $user->isSupervisor()) {
             throw ValidationException::withMessages([
                 'department_id' => ["Vous n'êtes pas chef de ce département."],
             ]);
@@ -61,8 +64,12 @@ class ProjectController extends Controller
             'status' => ProjectStatus::Brouillon->value,
         ]);
 
-        // Le créateur devient automatiquement chef de département sur le projet.
-        $project->members()->attach($user->id, ['role' => \App\Enums\ProjectRole::ChefDepartement->value]);
+        // Le créateur devient automatiquement chef de département sur le projet — sauf
+        // l'admin/directeur, qui a déjà un accès total sans avoir besoin d'apparaître
+        // dans la liste des membres du projet.
+        if (! $user->isSupervisor()) {
+            $project->members()->attach($user->id, ['role' => \App\Enums\ProjectRole::ChefDepartement->value]);
+        }
 
         return (new ProjectResource($this->fullyLoad($project)))
             ->response()

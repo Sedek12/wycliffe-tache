@@ -21,7 +21,7 @@ const ABILITIES = [
 ]
 
 export default function TaskForm({ task, parent, project, projectActivities, onClose, onSaved }) {
-  const { user, ledDepartments, isAdmin, isChefOf, isProjectManagerOf } = useAuth()
+  const { user, ledDepartments, isAdmin, isDirecteur, isChefOf, isProjectManagerOf } = useAuth()
   const toast = useToast()
   const editing = Boolean(task)
   const isSubtask = Boolean(parent)
@@ -57,8 +57,8 @@ export default function TaskForm({ task, parent, project, projectActivities, onC
     setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
 
   useEffect(() => {
-    if (isAdmin) api.get('/departments').then(({ data }) => setDepartments(data.data)).catch(() => {})
-  }, [isAdmin])
+    if (isAdmin || isDirecteur) api.get('/departments').then(({ data }) => setDepartments(data.data)).catch(() => {})
+  }, [isAdmin, isDirecteur])
 
   useEffect(() => {
     if (!form.department_id) return
@@ -83,7 +83,7 @@ export default function TaskForm({ task, parent, project, projectActivities, onC
 
   // Le chef (ou l'admin, ou le responsable managérial du projet) peut déléguer des
   // pouvoirs au responsable désigné, dès lors que ce responsable n'est pas lui-même.
-  const isChefLevel = isAdmin || isChefOf(form.department_id) || (project && isProjectManagerOf(project.id))
+  const isChefLevel = isAdmin || isDirecteur || isChefOf(form.department_id) || (project && isProjectManagerOf(project.id))
   const supervisorIsSomeoneElse =
     form.supervisor_id && String(form.supervisor_id) !== String(user?.id || '')
   const showAbilities = isChefLevel && supervisorIsSomeoneElse

@@ -8,9 +8,10 @@ use App\Models\User;
 
 class TaskPolicy
 {
+    /** L'admin et le directeur ont un accès total aux tâches (comme pour les projets). */
     public function before(User $user, string $ability): ?bool
     {
-        return $user->isAdmin() ? true : null;
+        return $user->isSupervisor() ? true : null;
     }
 
     public function viewAny(User $user): bool
@@ -43,7 +44,7 @@ class TaskPolicy
             ->exists();
     }
 
-    /** Le directeur ne crée pas de tâches : seul le chef du département. */
+    /** Chef de département (admin/directeur passent déjà par before()). */
     public function create(User $user): bool
     {
         return $user->isChefSomewhere();
@@ -134,8 +135,8 @@ class TaskPolicy
     }
 
     /**
-     * Chef du département de la tâche, ou responsable managérial (rôle « chef »)
-     * du projet auquel elle appartient (l'admin passe déjà par before()).
+     * Chef du département de la tâche, ou — si la tâche appartient à un projet —
+     * responsable managérial du projet (admin et directeur passent déjà par before()).
      */
     private function isChefLevel(User $user, Task $task): bool
     {

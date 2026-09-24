@@ -8,9 +8,14 @@ use App\Models\User;
 
 class ProjectPolicy
 {
+    /**
+     * L'admin ET le directeur ont un accès total aux projets (création, cadrage,
+     * planification, documents, budget, membres, suppression) — contrairement aux
+     * tâches, où le directeur ne crée pas mais supervise seulement.
+     */
     public function before(User $user, string $ability): ?bool
     {
-        return $user->isAdmin() ? true : null;
+        return $user->isSupervisor() ? true : null;
     }
 
     public function viewAny(User $user): bool
@@ -29,8 +34,8 @@ class ProjectPolicy
     /**
      * Chef de département, ou toute personne ayant déjà un rôle managérial
      * (Chef service, Coordonnateur/Facilitateur, Facilitateur de zone, Moniteur)
-     * sur au moins un projet existant — aligné sur le CDC. Le directeur ne crée
-     * pas de projets directement (cohérent avec les tâches).
+     * sur au moins un projet existant — aligné sur le CDC. (Admin et directeur
+     * passent déjà par before() et n'atteignent jamais ce code.)
      */
     public function create(User $user): bool
     {

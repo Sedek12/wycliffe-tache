@@ -41,4 +41,5 @@ export {
   Link2 as IconDependency,
   Wallet as IconBudget,
   FolderOpen as IconDocuments,
+  Palette as IconPalette,
 } from 'lucide-react'

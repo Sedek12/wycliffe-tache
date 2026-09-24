@@ -8,9 +8,10 @@ use App\Models\User;
 
 class CollaborationRequestPolicy
 {
+    /** L'admin et le directeur ont un accès total (comme pour les projets et les tâches). */
     public function before(User $user, string $ability): ?bool
     {
-        return $user->isAdmin() ? true : null;
+        return $user->isSupervisor() ? true : null;
     }
 
     public function view(User $user, CollaborationRequest $request): bool

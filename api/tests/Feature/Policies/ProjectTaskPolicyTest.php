@@ -70,4 +70,33 @@ class ProjectTaskPolicyTest extends TestCase
 
         $this->assertTrue($member->can('view', $activity));
     }
+
+    public function test_directeur_gets_chef_level_on_project_activities_without_being_a_project_member(): void
+    {
+        // Le directeur a un accès total aux projets (comme l'admin), même sans être
+        // explicitement ajouté dans project_user.
+        $department = $this->makeDepartment();
+        $chef = $this->makeChef($department);
+        $directeur = $this->makeDirecteur();
+        $project = $this->makeProject($department, $chef);
+
+        $activity = $this->makeTask($department, $chef, ['project_id' => $project->id]);
+
+        $this->assertTrue($directeur->can('update', $activity));
+        $this->assertTrue($directeur->can('manageTeam', $activity));
+        $this->assertTrue($directeur->can('manageDependencies', $activity));
+    }
+
+    public function test_directeur_can_also_manage_a_plain_department_task_outside_any_project(): void
+    {
+        // Le directeur a désormais un accès total aux tâches, comme l'admin
+        // (before() -> isSupervisor()), y compris hors de tout projet.
+        $department = $this->makeDepartment();
+        $chef = $this->makeChef($department);
+        $directeur = $this->makeDirecteur();
+        $task = $this->makeTask($department, $chef); // pas de project_id
+
+        $this->assertTrue($directeur->can('update', $task));
+        $this->assertTrue($directeur->can('create', \App\Models\Task::class));
+    }
 }

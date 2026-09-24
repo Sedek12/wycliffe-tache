@@ -85,15 +85,15 @@ class TaskController extends Controller
             $data['department_id'] = $project->department_id;
         } else {
             $this->authorize('create', Task::class);
-            if (! $user->isChefOf($data['department_id']) && ! $user->isAdmin()) {
+            if (! $user->isChefOf($data['department_id']) && ! $user->isSupervisor()) {
                 throw ValidationException::withMessages([
                     'department_id' => ["Vous n'êtes pas chef de ce département."],
                 ]);
             }
         }
 
-        // Seul un chef (ou l'admin, ou un responsable managérial du projet) fixe les pouvoirs délégués.
-        $isChefLevel = $user->isAdmin()
+        // Seul un chef (ou l'admin/directeur, ou un responsable managérial du projet) fixe les pouvoirs délégués.
+        $isChefLevel = $user->isSupervisor()
             || $user->isChefOf($data['department_id'])
             || ($project && $user->isProjectManagerOf($project->id));
         $abilities = $isChefLevel
@@ -208,8 +208,8 @@ class TaskController extends Controller
         ]);
 
         // Le responsable / responsable délégué ne peut pas se réattribuer des pouvoirs
-        // ni changer le responsable : réservé au chef (ou à l'admin, ou au responsable de projet).
-        $isChefLevel = $request->user()->isAdmin()
+        // ni changer le responsable : réservé au chef (ou à l'admin/directeur, ou au responsable de projet).
+        $isChefLevel = $request->user()->isSupervisor()
             || $request->user()->isChefOf($task->department_id)
             || ($task->project_id && $request->user()->isProjectManagerOf($task->project_id));
         if (! $isChefLevel) {
@@ -393,12 +393,16 @@ class TaskController extends Controller
      */
     private function resolveSupervisor(?int $supervisorId, $memberIds, User $actor, Department $department, bool $isTeam, ?Project $project = null): ?int
     {
-        $actorIsManager = $actor->isChefOf($department->id) || ($project && $actor->isProjectManagerOf($project->id));
+        $actorIsManager = $actor->isSupervisor()
+            || $actor->isChefOf($department->id)
+            || ($project && $actor->isProjectManagerOf($project->id));
 
         if ($supervisorId) {
+            $candidate = User::find($supervisorId);
             $allowed = $memberIds->contains($supervisorId)
-                || (User::find($supervisorId)?->isChefOf($department->id) ?? false)
-                || ($project && (User::find($supervisorId)?->isProjectManagerOf($project->id) ?? false));
+                || ($candidate?->isSupervisor() ?? false)
+                || ($candidate?->isChefOf($department->id) ?? false)
+                || ($project && $candidate?->isProjectManagerOf($project->id));
             if (! $allowed) {
                 throw ValidationException::withMessages([
                     'supervisor_id' => ['Le responsable doit être un membre de ce département ou du projet.'],

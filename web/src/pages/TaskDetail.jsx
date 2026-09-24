@@ -65,7 +65,7 @@ const proofFile = (p) => ({
 export default function TaskDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user, isSupervisor, isAdmin, isChefOf } = useAuth()
+  const { user, isAdmin, isDirecteur, isChefOf, isProjectManagerOf } = useAuth()
   const toast = useToast()
 
   const [task, setTask] = useState(null)
@@ -90,15 +90,20 @@ export default function TaskDetail() {
 
   const isTaskSupervisor = task.supervisor_id === user.id
   const abil = task.delegated_abilities || []
-  const chefLevel = isSupervisor || isChefOf(task.department_id)
+  // Aligné sur TaskPolicy côté API : admin et directeur ont un accès total.
+  const chefLevel =
+    isAdmin
+    || isDirecteur
+    || isChefOf(task.department_id)
+    || Boolean(task.project_id && isProjectManagerOf(task.project_id))
   const supCan = (key) => isTaskSupervisor && abil.includes(key)
 
-  const canDelete = isAdmin || isChefOf(task.department_id)
+  const canDelete = chefLevel
   const canEditTask = chefLevel || supCan('manage_team')
   const canStatus = chefLevel || supCan('change_status')
   const canCollab = chefLevel || supCan('request_collaboration')
   const canCreateSub = chefLevel || supCan('create_subtasks')
-  const isCreatorChef = task.creator?.id === user.id && isChefOf(task.department_id)
+  const isCreatorChef = task.creator?.id === user.id && chefLevel
   const myPart = (task.assignees || []).find((a) => a.id === user.id)
   const isAssignee = Boolean(myPart)
   const myPartDone = Boolean(myPart?.is_done)

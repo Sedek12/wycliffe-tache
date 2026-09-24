@@ -17,10 +17,10 @@ const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 
 export default function Projects() {
-  const { isAdmin, isChef, ledDepartments, managedProjects } = useAuth()
+  const { isAdmin, isDirecteur, isChef, ledDepartments, managedProjects } = useAuth()
   const { meta } = useMeta()
   const navigate = useNavigate()
-  const canCreate = isAdmin || (isChef && ledDepartments.length > 0) || managedProjects.length > 0
+  const canCreate = isAdmin || isDirecteur || (isChef && ledDepartments.length > 0) || managedProjects.length > 0
 
   const [items, setItems] = useState(null)
   const [editing, setEditing] = useState(null)

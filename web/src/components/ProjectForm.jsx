@@ -5,19 +5,20 @@ import { useToast } from '../context/ToastContext'
 import { Field, Modal } from './ui'
 
 export default function ProjectForm({ project, onClose, onSaved }) {
-  const { ledDepartments, isAdmin, managedProjects } = useAuth()
+  const { ledDepartments, isAdmin, isDirecteur, managedProjects } = useAuth()
   const toast = useToast()
   const editing = Boolean(project?.id)
 
-  // Un chef voit ses départements ; un responsable de projet (coordonnateur, facilitateur,
-  // moniteur) sans être chef n'a pas de "ledDepartments" propre — on charge alors la liste
-  // complète, comme pour l'admin, pour qu'il puisse choisir le département de son projet.
+  // Un chef voit ses départements. L'admin et le directeur peuvent créer un projet
+  // dans n'importe quel département. Un responsable de projet (coordonnateur,
+  // facilitateur, moniteur) sans être chef n'a pas de "ledDepartments" propre non plus
+  // — on charge alors la liste complète pour qu'il puisse choisir le département.
   const [departments, setDepartments] = useState(ledDepartments)
   useEffect(() => {
-    if (isAdmin || (ledDepartments.length === 0 && managedProjects.length > 0)) {
+    if (isAdmin || isDirecteur || (ledDepartments.length === 0 && managedProjects.length > 0)) {
       api.get('/departments').then(({ data }) => setDepartments(data.data)).catch(() => {})
     }
-  }, [isAdmin, ledDepartments, managedProjects])
+  }, [isAdmin, isDirecteur, ledDepartments, managedProjects])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 

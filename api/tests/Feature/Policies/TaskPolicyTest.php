@@ -13,7 +13,7 @@ class TaskPolicyTest extends TestCase
     use RefreshDatabase;
     use CreatesTestData;
 
-    public function test_only_a_chef_or_admin_can_create_a_task(): void
+    public function test_a_chef_admin_or_directeur_can_create_a_task(): void
     {
         $department = $this->makeDepartment();
         $chef = $this->makeChef($department);
@@ -23,9 +23,8 @@ class TaskPolicyTest extends TestCase
 
         $this->assertTrue($chef->can('create', Task::class));
         $this->assertTrue($admin->can('create', Task::class));
-
-        // Le directeur supervise mais ne crée pas de tâches lui-même.
-        $this->assertFalse($directeur->can('create', Task::class));
+        // Le directeur a un accès total, comme l'admin (avant() -> isSupervisor()).
+        $this->assertTrue($directeur->can('create', Task::class));
         $this->assertFalse($employe->can('create', Task::class));
     }
 

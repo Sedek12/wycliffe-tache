@@ -92,10 +92,14 @@ export function Modal({ title, onClose, children, footer, wide }) {
 
   return (
     <div className="modal-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}>
-      <div className="modal" style={wide ? { maxWidth: 760 } : undefined}>
+      <div
+        className="modal"
+        style={wide ? { maxWidth: 760 } : undefined}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <div className="modal-head">
           <h2 style={{ margin: 0, fontSize: '1.05rem' }}>{title}</h2>
-          <button className="btn btn-ghost btn-sm" onClick={onClose} aria-label="Fermer">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onClose} aria-label="Fermer">
             <IconX width={16} height={16} />
           </button>
         </div>

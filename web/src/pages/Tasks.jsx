@@ -24,7 +24,7 @@ const initials = (name = '') =>
   name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('') || 'U'
 
 export default function Tasks() {
-  const { user, isChef, isSupervisor, isAdmin, isChefOf, ledDepartments } = useAuth()
+  const { user, isChef, isAdmin, isDirecteur, isChefOf, isProjectManagerOf, ledDepartments } = useAuth()
   const { meta, labelOf } = useMeta()
   const navigate = useNavigate()
   const toast = useToast()
@@ -63,16 +63,21 @@ export default function Tasks() {
     })
   }, [tasks, status, dept, scope, query, user])
 
-  const canCreate =
-    (isChef || isSupervisor) && ledDepartments.length + (isSupervisor ? 1 : 0) > 0
+  // Aligné sur TaskPolicy côté API : admin et directeur ont un accès total (before()),
+  // sinon il faut être chef d'au moins un département.
+  const canCreate = isAdmin || isDirecteur || (isChef && ledDepartments.length > 0)
 
-  // Droits par ligne (cohérents avec TaskPolicy côté API : opt-in strict pour le responsable).
-  const chefLevel = (t) => isSupervisor || isChefOf(t.department_id)
+  // Droits par ligne (cohérents avec TaskPolicy::isChefLevel côté API).
+  const chefLevel = (t) =>
+    isAdmin
+    || isDirecteur
+    || isChefOf(t.department_id)
+    || (t.project_id && isProjectManagerOf(t.project_id))
   const supAbility = (t, key) =>
     t.supervisor_id === user?.id && (t.delegated_abilities || []).includes(key)
   const canEditTask = (t) =>
     t.status !== 'validee' && (chefLevel(t) || supAbility(t, 'manage_team'))
-  const canDeleteTask = (t) => isAdmin || isChefOf(t.department_id)
+  const canDeleteTask = (t) => chefLevel(t)
   const canCancelTask = (t) =>
     (chefLevel(t) || supAbility(t, 'change_status')) &&
     (t.allowed_next || []).some((s) => s.value === 'annulee')

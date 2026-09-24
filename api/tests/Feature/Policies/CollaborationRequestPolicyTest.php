@@ -56,4 +56,14 @@ class CollaborationRequestPolicyTest extends TestCase
         $this->assertTrue($fromChef->can('cancel', $request));
         $this->assertFalse($toChef->can('cancel', $request));
     }
+
+    public function test_directeur_has_full_access_to_any_collaboration_request_like_admin(): void
+    {
+        ['request' => $request] = $this->makeRequest();
+        $directeur = $this->makeDirecteur();
+
+        $this->assertTrue($directeur->can('view', $request));
+        $this->assertTrue($directeur->can('respond', $request));
+        $this->assertTrue($directeur->can('cancel', $request));
+    }
 }
